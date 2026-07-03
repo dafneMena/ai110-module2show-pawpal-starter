@@ -151,7 +151,41 @@ else:
         if len(st.session_state.scheduler.tasks) == 0:
             st.info("No tasks yet. Create a task to get started!")
         else:
-            for task in st.session_state.scheduler.tasks:
+            # Filter controls
+            col1, col2 = st.columns(2)
+
+            with col1:
+                filter_status = st.selectbox(
+                    "Filter by Status",
+                    ["All", "pending", "completed", "missed"],
+                    key="filter_status"
+                )
+
+            with col2:
+                pet_options = ["All"] + [pet.name for pet in st.session_state.owner.pets]
+                filter_pet = st.selectbox(
+                    "Filter by Pet",
+                    pet_options,
+                    key="filter_pet"
+                )
+
+            # Apply filters
+            filtered_tasks = st.session_state.scheduler.tasks
+
+            if filter_status != "All":
+                filtered_tasks = st.session_state.scheduler.getTasksByStatus(filter_status)
+
+            if filter_pet != "All":
+                pet_filtered = st.session_state.scheduler.getTasksByPetName(filter_pet)
+                if filter_status != "All":
+                    filtered_tasks = [t for t in pet_filtered if t.completionStatus == filter_status]
+                else:
+                    filtered_tasks = pet_filtered
+
+            st.divider()
+            st.caption(f"Showing {len(filtered_tasks)} of {len(st.session_state.scheduler.tasks)} tasks")
+
+            for task in filtered_tasks:
                 pet = next((p for p in st.session_state.owner.pets if p.petId == task.petId), None)
                 pet_name = pet.name if pet else "Unknown"
 

@@ -34,6 +34,35 @@ class Task:
         """Return formatted string with task details."""
         return f"Task: {self.description} | Pet: {self.petId} | Time: {self.time} | Priority: {self.priority} | Status: {self.completionStatus}"
 
+    def generateNextInstance(self) -> 'Task':
+        """Create the next instance of a recurring task."""
+        if self.frequency == "one-time":
+            return None
+
+        # Calculate next occurrence based on frequency
+        next_time = self.time
+        if self.frequency == "daily":
+            next_time = self.time + timedelta(days=1)
+        elif self.frequency == "weekly":
+            next_time = self.time + timedelta(weeks=1)
+        elif self.frequency == "monthly":
+            next_time = self.time + timedelta(days=30)
+        elif self.frequency == "yearly":
+            next_time = self.time + timedelta(days=365)
+
+        # Create new task instance with incremented ID
+        next_task = Task(
+            taskId=f"{self.taskId}_repeat_{datetime.now().timestamp()}",
+            petId=self.petId,
+            description=self.description,
+            time=next_time,
+            frequency=self.frequency,
+            priority=self.priority,
+            duration=self.duration,
+            completionStatus="pending"
+        )
+        return next_task
+
 
 @dataclass
 class Pet:
@@ -167,15 +196,36 @@ class Scheduler:
             display_func(border)
 
     def taskCompleted(self, taskId: str):
-        """Mark a task as completed by task ID."""
+        """Mark a task as completed by task ID. Auto-generates next instance for recurring tasks."""
         for task in self.tasks:
             if task.taskId == taskId:
                 task.markComplete()
+
+                # Auto-generate next instance for recurring tasks
+                if task.frequency != "one-time":
+                    next_task = task.generateNextInstance()
+                    if next_task:
+                        self.tasks.append(next_task)
                 return
 
     def getAllTasks(self) -> List[Task]:
         """Return list of all tasks in the schedule."""
         return self.tasks
+
+    def getTasksByStatus(self, status: str) -> List[Task]:
+        """Filter tasks by completion status (pending, completed, missed)."""
+        return [task for task in self.tasks if task.completionStatus == status]
+
+    def getTasksByPetName(self, pet_name: str) -> List[Task]:
+        """Filter tasks by pet name (case-insensitive)."""
+        matching_pet_id = None
+        for pet in self.owner.pets:
+            if pet.name.lower() == pet_name.lower():
+                matching_pet_id = pet.petId
+                break
+        if matching_pet_id:
+            return [task for task in self.tasks if task.petId == matching_pet_id]
+        return []
 
     def generateDailyTasks(self):
         """Generate future task instances based on frequency (daily, weekly, monthly)."""
