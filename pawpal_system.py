@@ -15,18 +15,23 @@ class Task:
     completionStatus: str  # "pending", "completed", "missed"
 
     def markComplete(self):
+        """Mark task as completed."""
         self.completionStatus = "completed"
 
     def markMissed(self):
+        """Mark task as missed."""
         self.completionStatus = "missed"
 
     def reschedule(self, newTime: datetime):
+        """Update task's scheduled time."""
         self.time = newTime
 
     def updatePriority(self, newPriority: str):
+        """Update task's priority level."""
         self.priority = newPriority
 
     def getDetails(self) -> str:
+        """Return formatted string with task details."""
         return f"Task: {self.description} | Pet: {self.petId} | Time: {self.time} | Priority: {self.priority} | Status: {self.completionStatus}"
 
 
@@ -42,9 +47,11 @@ class Pet:
     scheduler: 'Scheduler' = None
 
     def getTasks(self) -> List[Task]:
+        """Retrieve all tasks assigned to this pet."""
         return [task for task in self.scheduler.tasks if task.petId == self.petId]
 
     def getDetails(self) -> str:
+        """Return formatted string with pet information."""
         return f"Pet: {self.name} | Type: {self.type} | Breed: {self.breed} | Age: {self.age} | Activity Level: {self.activityLevel}"
 
 
@@ -57,48 +64,60 @@ class Owner:
     scheduler: 'Scheduler' = None
 
     def addPet(self, pet: Pet):
+        """Add a pet to the owner's pet list."""
         pet.scheduler = self.scheduler
         self.pets.append(pet)
 
     def removePet(self, petId: str):
+        """Remove a pet from the owner's pet list."""
         self.pets = [pet for pet in self.pets if pet.petId != petId]
 
     def getPets(self) -> List[Pet]:
+        """Return list of all pets owned by this owner."""
         return self.pets
 
     def addTask(self, task: Task):
+        """Create a new task for one of the owner's pets."""
         self.scheduler.addTask(task)
 
     def removeTask(self, taskId: str):
+        """Remove a task from the schedule."""
         self.scheduler.removeTask(taskId)
 
     def viewSchedule(self):
+        """Display today's schedule for all pets."""
         self.scheduler.viewSchedule()
 
     def getTasksForAllPets(self) -> List[Task]:
+        """Retrieve all tasks across all pets."""
         return self.scheduler.getAllTasks()
 
 
 class Scheduler:
     def __init__(self, owner: Owner):
+        """Initialize scheduler with an owner and empty task list."""
         self.owner = owner
         self.tasks: List[Task] = []
 
     def addTask(self, task: Task):
+        """Add a task to the schedule after validating the pet exists."""
         if not any(pet.petId == task.petId for pet in self.owner.pets):
             raise ValueError(f"Pet with ID {task.petId} not found")
         self.tasks.append(task)
 
     def removeTask(self, taskId: str):
+        """Remove a task from the schedule by task ID."""
         self.tasks = [task for task in self.tasks if task.taskId != taskId]
 
     def rescheduleTask(self, taskId: str, newTime: datetime):
+        """Update the scheduled time for a specific task."""
         for task in self.tasks:
             if task.taskId == taskId:
                 task.reschedule(newTime)
                 return
 
     def viewSchedule(self):
+        """Display formatted schedule of all tasks sorted by time."""
         # Build border
         border = "=" * 70
 
@@ -128,15 +147,18 @@ class Scheduler:
         print(border)
 
     def taskCompleted(self, taskId: str):
+        """Mark a task as completed by task ID."""
         for task in self.tasks:
             if task.taskId == taskId:
                 task.markComplete()
                 return
 
     def getAllTasks(self) -> List[Task]:
+        """Return list of all tasks in the schedule."""
         return self.tasks
 
     def generateDailyTasks(self):
+        """Generate future task instances based on frequency (daily, weekly, monthly)."""
         new_tasks = []
         for task in self.tasks:
             if task.frequency == "daily":
