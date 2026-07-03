@@ -22,8 +22,16 @@ Scheduler — The "brain" that manages all tasks across all pets. Stores all tas
 **b. Design changes**
 
 - Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
 
+Yes. During the brainstorming process, we identified and fixed two key missing relationships:
+
+Added Scheduler reference to Owner — We realized Owner needed a direct reference to Scheduler so it could properly delegate task operations (addTask, removeTask, etc.).
+
+Added Scheduler reference to Pet — Pet's getTasks() method needed access to the Scheduler to filter and retrieve tasks belonging to that pet. Without this reference, Pet couldn't implement the method. 
+
+- If yes, describe at least one change and why you made it.
+  
+These changes ensured proper communication between classes and made the delegation pattern functional. Without these relationships, Owner and Pet couldn't interact with Scheduler to manage tasks, which would have created dead code.
 ---
 
 ## 2. Scheduling Logic and Tradeoffs

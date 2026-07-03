@@ -39,6 +39,7 @@ class Pet:
     age: int
     healthInfo: str
     activityLevel: str  # "low", "medium", "high"
+    scheduler: 'Scheduler' = None
 
     def getTasks(self) -> List[Task]:
         pass
@@ -53,6 +54,7 @@ class Owner:
     name: str
     contactInfo: str
     pets: List[Pet] = field(default_factory=list)
+    scheduler: 'Scheduler' = None
 
     def addPet(self, pet: Pet):
         pass

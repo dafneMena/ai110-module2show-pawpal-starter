@@ -4,6 +4,7 @@ classDiagram
         - name: String
         - contactInfo: String
         - pets: List~Pet~
+        - scheduler: Scheduler
         + addPet(pet: Pet)
         + removePet(petId: String)
         + getPets(): List~Pet~
@@ -21,6 +22,7 @@ classDiagram
         - age: int
         - healthInfo: String
         - activityLevel: String
+        - scheduler: Scheduler
         + getTasks(): List~Task~
         + getDetails(): String
     }
@@ -57,3 +59,4 @@ classDiagram
     Owner "1" -- "1" Scheduler : has
     Scheduler "1" -- "*" Task : manages
     Task "*" -- "1" Pet : belongsTo
+    Pet "1" -- "1" Scheduler : queries
