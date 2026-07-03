@@ -116,7 +116,7 @@ class Scheduler:
                 task.reschedule(newTime)
                 return
 
-    def viewSchedule(self):
+    def viewSchedule(self, display_func=print, show_header=True):
         """Display formatted schedule of all tasks sorted by time."""
         # Build border
         border = "=" * 70
@@ -124,11 +124,12 @@ class Scheduler:
         # Build pet list
         pet_list = " & ".join([f"{pet.name} ({pet.breed})" for pet in self.owner.pets])
 
-        # Print header
-        print(border)
-        print(f"TODAY'S SCHEDULE FOR {self.owner.name.upper()}")
-        print(f"Pets: {pet_list}")
-        print(border)
+        # Display header only if requested
+        if show_header:
+            display_func(border)
+            display_func(f"TODAY'S SCHEDULE FOR {self.owner.name.upper()}")
+            display_func(f"Pets: {pet_list}")
+            display_func(border)
 
         # Sort tasks by time and print each
         sorted_tasks = sorted(self.tasks, key=lambda task: task.time)
@@ -141,10 +142,11 @@ class Scheduler:
             time_str = task.time.strftime("%H:%M")
 
             # Print formatted task
-            print(f"{time_str} — {pet_name} {task.description} | {task.duration} min | Priority: {task.priority} | Status: {task.completionStatus}")
+            display_func(f"{time_str} — {pet_name} {task.description} | {task.duration} min | Priority: {task.priority} | Status: {task.completionStatus}")
 
-        # Print footer
-        print(border)
+        # Print footer only if header was shown
+        if show_header:
+            display_func(border)
 
     def taskCompleted(self, taskId: str):
         """Mark a task as completed by task ID."""

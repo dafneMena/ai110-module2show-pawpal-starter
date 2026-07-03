@@ -1,88 +1,174 @@
 import streamlit as st
+from datetime import datetime
+from pawpal_system import Owner, Pet, Task, Scheduler
+from main import initialize_demo
 
-st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
-st.title("🐾 PawPal+")
+# Page configuration
+st.set_page_config(page_title="PawPal", layout="wide")
+st.title("🐾 PawPal - Pet Care Task Manager")
 
-st.markdown(
-    """
-Welcome to the PawPal+ starter app.
+# Initialize session state for persistence across reruns
+if "owner" not in st.session_state or "scheduler" not in st.session_state:
+    st.session_state.owner, st.session_state.scheduler = initialize_demo()
 
-This file is intentionally thin. It gives you a working Streamlit app so you can start quickly,
-but **it does not implement the project logic**. Your job is to design the system and build it.
 
-Use this app as your interactive demo once your backend classes/functions exist.
-"""
-)
+def initialize_owner(owner_name: str, contact_info: str):
+    """Initialize owner and scheduler in session state."""
+    st.session_state.owner = Owner(ownerId="1", name=owner_name, contactInfo=contact_info)
+    st.session_state.scheduler = Scheduler(owner=st.session_state.owner)
+    st.session_state.owner.scheduler = st.session_state.scheduler
 
-with st.expander("Scenario", expanded=True):
-    st.markdown(
-        """
-**PawPal+** is a pet care planning assistant. It helps a pet owner plan care tasks
-for their pet(s) based on constraints like time, priority, and preferences.
 
-You will design and implement the scheduling logic and connect it to this Streamlit UI.
-"""
-    )
+# Sidebar for owner setup
+with st.sidebar:
+    st.header("Owner Setup")
 
-with st.expander("What you need to build", expanded=True):
-    st.markdown(
-        """
-At minimum, your system should:
-- Represent pet care tasks (what needs to happen, how long it takes, priority)
-- Represent the pet and the owner (basic info and preferences)
-- Build a plan/schedule for a day that chooses and orders tasks based on constraints
-- Explain the plan (why each task was chosen and when it happens)
-"""
-    )
+    if st.session_state.owner is None:
+        owner_name = st.text_input("Owner Name", placeholder="Enter your name")
+        contact_info = st.text_input("Contact Info", placeholder="Enter email or phone")
 
-st.divider()
+        if st.button("Initialize PawPal"):
+            if owner_name and contact_info:
+                initialize_owner(owner_name, contact_info)
+                st.success(f"Welcome, {owner_name}!")
+            else:
+                st.error("Please fill in all fields")
+    else:
+        st.write(f"**Owner:** {st.session_state.owner.name}")
+        st.write(f"**Contact:** {st.session_state.owner.contactInfo}")
+        st.write(f"**Pets:** {len(st.session_state.owner.pets)}")
 
-st.subheader("Quick Demo Inputs (UI only)")
-owner_name = st.text_input("Owner name", value="Jordan")
-pet_name = st.text_input("Pet name", value="Mochi")
-species = st.selectbox("Species", ["dog", "cat", "other"])
 
-st.markdown("### Tasks")
-st.caption("Add a few tasks. In your final version, these should feed into your scheduler.")
-
-if "tasks" not in st.session_state:
-    st.session_state.tasks = []
-
-col1, col2, col3 = st.columns(3)
-with col1:
-    task_title = st.text_input("Task title", value="Morning walk")
-with col2:
-    duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20)
-with col3:
-    priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
-
-if st.button("Add task"):
-    st.session_state.tasks.append(
-        {"title": task_title, "duration_minutes": int(duration), "priority": priority}
-    )
-
-if st.session_state.tasks:
-    st.write("Current tasks:")
-    st.table(st.session_state.tasks)
+# Main app content
+if st.session_state.owner is None:
+    st.info("👈 Please set up your owner profile in the sidebar to get started!")
 else:
-    st.info("No tasks yet. Add one above.")
+    # Navigation tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["📅 Today's Schedule", "🐕 Manage Pets", "📝 Add Task", "⚙️ Manage Tasks"])
 
-st.divider()
+    # Tab 1: Today's Schedule
+    with tab1:
+        st.header("Today's Schedule")
+        if len(st.session_state.scheduler.tasks) == 0:
+            st.info("No tasks scheduled yet. Add a pet and task to get started!")
+        else:
+            st.session_state.scheduler.viewSchedule(display_func=st.write, show_header=False)
 
-st.subheader("Build Schedule")
-st.caption("This button should call your scheduling logic once you implement it.")
+    # Tab 2: Manage Pets
+    with tab2:
+        st.header("Manage Pets")
 
-if st.button("Generate schedule"):
-    st.warning(
-        "Not implemented yet. Next step: create your scheduling logic (classes/functions) and call it here."
-    )
-    st.markdown(
-        """
-Suggested approach:
-1. Design your UML (draft).
-2. Create class stubs (no logic).
-3. Implement scheduling behavior.
-4. Connect your scheduler here and display results.
-"""
-    )
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.subheader("Add New Pet")
+            pet_name = st.text_input("Pet Name", key="pet_name_input")
+            pet_type = st.selectbox("Pet Type", ["dog", "cat", "bird", "other"], key="pet_type_select")
+            pet_breed = st.text_input("Breed", key="pet_breed_input")
+            pet_age = st.number_input("Age", min_value=0, max_value=50, key="pet_age_input")
+            pet_health = st.text_area("Health Info", key="pet_health_input", height=80)
+            pet_activity = st.selectbox("Activity Level", ["low", "medium", "high"], key="pet_activity_select")
+
+            if st.button("Add Pet", key="add_pet_btn"):
+                if pet_name and pet_breed:
+                    new_pet = Pet(
+                        petId=str(len(st.session_state.owner.pets) + 1),
+                        name=pet_name,
+                        type=pet_type,
+                        breed=pet_breed,
+                        age=pet_age,
+                        healthInfo=pet_health,
+                        activityLevel=pet_activity,
+                        scheduler=st.session_state.scheduler
+                    )
+                    st.session_state.owner.addPet(new_pet)
+                    st.success(f"✓ {pet_name} added successfully!")
+                    st.rerun()
+                else:
+                    st.error("Please fill in required fields (Name and Breed)")
+
+        with col2:
+            st.subheader("Your Pets")
+            if len(st.session_state.owner.pets) == 0:
+                st.info("No pets yet. Add your first pet!")
+            else:
+                for pet in st.session_state.owner.pets:
+                    with st.expander(f"🐾 {pet.name} ({pet.breed})"):
+                        st.write(pet.getDetails())
+                        st.write(f"**Tasks:** {len(pet.getTasks())}")
+                        if st.button(f"Remove {pet.name}", key=f"remove_{pet.petId}"):
+                            st.session_state.owner.removePet(pet.petId)
+                            st.success(f"{pet.name} removed")
+                            st.rerun()
+
+    # Tab 3: Add Task
+    with tab3:
+        st.header("Add New Task")
+
+        if len(st.session_state.owner.pets) == 0:
+            st.warning("Please add a pet first!")
+        else:
+            pet_options = {pet.name: pet.petId for pet in st.session_state.owner.pets}
+            selected_pet_name = st.selectbox("Select Pet", list(pet_options.keys()), key="selected_pet_select")
+            selected_pet_id = pet_options[selected_pet_name]
+
+            task_description = st.text_input("Task Description", placeholder="e.g., Morning walk", key="task_description_input")
+            task_time = st.time_input("Task Time", value=datetime.now().time(), key="task_time_input")
+            task_frequency = st.selectbox("Frequency", ["one-time", "daily", "weekly", "monthly", "yearly"], key="task_frequency_select")
+            task_priority = st.selectbox("Priority", ["low", "medium", "high"], key="task_priority_select")
+            task_duration = st.number_input("Duration (minutes)", min_value=1, value=30, key="task_duration_input")
+
+            if st.button("Add Task"):
+                if task_description:
+                    task_datetime = datetime.now().replace(
+                        hour=task_time.hour,
+                        minute=task_time.minute,
+                        second=0,
+                        microsecond=0
+                    )
+                    new_task = Task(
+                        taskId=str(len(st.session_state.scheduler.tasks) + 1),
+                        petId=selected_pet_id,
+                        description=task_description,
+                        time=task_datetime,
+                        frequency=task_frequency,
+                        priority=task_priority,
+                        duration=task_duration,
+                        completionStatus="pending"
+                    )
+                    st.session_state.owner.addTask(new_task)
+                    st.success(f"✓ Task added for {selected_pet_name}!")
+                    st.rerun()
+                else:
+                    st.error("Please enter a task description")
+
+    # Tab 4: Manage Tasks
+    with tab4:
+        st.header("Manage Tasks")
+
+        if len(st.session_state.scheduler.tasks) == 0:
+            st.info("No tasks yet. Create a task to get started!")
+        else:
+            for task in st.session_state.scheduler.tasks:
+                pet = next((p for p in st.session_state.owner.pets if p.petId == task.petId), None)
+                pet_name = pet.name if pet else "Unknown"
+
+                col1, col2, col3 = st.columns([3, 1, 1])
+
+                with col1:
+                    st.write(f"**{pet_name}** - {task.description} ({task.time.strftime('%H:%M')})")
+                    st.caption(f"Priority: {task.priority} | Duration: {task.duration} min | Status: {task.completionStatus}")
+
+                with col2:
+                    if task.completionStatus == "pending":
+                        if st.button("✓ Complete", key=f"complete_{task.taskId}"):
+                            st.session_state.scheduler.taskCompleted(task.taskId)
+                            st.success("Task marked complete!")
+                            st.rerun()
+
+                with col3:
+                    if st.button("🗑️ Delete", key=f"delete_{task.taskId}"):
+                        st.session_state.scheduler.removeTask(task.taskId)
+                        st.success("Task deleted!")
+                        st.rerun()
