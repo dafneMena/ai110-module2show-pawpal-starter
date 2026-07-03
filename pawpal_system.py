@@ -66,8 +66,8 @@ class Owner:
     def getPets(self) -> List[Pet]:
         return self.pets
 
-    def addTask(self, task: Task, petId: str):
-        self.scheduler.addTask(task, petId)
+    def addTask(self, task: Task):
+        self.scheduler.addTask(task)
 
     def removeTask(self, taskId: str):
         self.scheduler.removeTask(taskId)
@@ -84,9 +84,9 @@ class Scheduler:
         self.owner = owner
         self.tasks: List[Task] = []
 
-    def addTask(self, task: Task, petId: str):
-        if not any(pet.petId == petId for pet in self.owner.pets):
-            raise ValueError(f"Pet with ID {petId} not found")
+    def addTask(self, task: Task):
+        if not any(pet.petId == task.petId for pet in self.owner.pets):
+            raise ValueError(f"Pet with ID {task.petId} not found")
         self.tasks.append(task)
 
     def removeTask(self, taskId: str):
@@ -99,9 +99,33 @@ class Scheduler:
                 return
 
     def viewSchedule(self):
+        # Build border
+        border = "=" * 70
+
+        # Build pet list
+        pet_list = " & ".join([f"{pet.name} ({pet.breed})" for pet in self.owner.pets])
+
+        # Print header
+        print(border)
+        print(f"TODAY'S SCHEDULE FOR {self.owner.name.upper()}")
+        print(f"Pets: {pet_list}")
+        print(border)
+
+        # Sort tasks by time and print each
         sorted_tasks = sorted(self.tasks, key=lambda task: task.time)
         for task in sorted_tasks:
-            print(task.getDetails())
+            # Find pet name
+            pet = next((p for p in self.owner.pets if p.petId == task.petId), None)
+            pet_name = pet.name if pet else "Unknown"
+
+            # Format time as HH:MM
+            time_str = task.time.strftime("%H:%M")
+
+            # Print formatted task
+            print(f"{time_str} — {pet_name} {task.description} | {task.duration} min | Priority: {task.priority} | Status: {task.completionStatus}")
+
+        # Print footer
+        print(border)
 
     def taskCompleted(self, taskId: str):
         for task in self.tasks:
