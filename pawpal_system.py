@@ -69,8 +69,8 @@ class Owner:
         self.pets.append(pet)
 
     def removePet(self, petId: str):
-        """Remove a pet from the owner's pet list."""
-        self.pets = [pet for pet in self.pets if pet.petId != petId]
+        """Remove a pet and all its tasks from the owner's pet list."""
+        self.scheduler.removePet(petId)
 
     def getPets(self) -> List[Pet]:
         """Return list of all pets owned by this owner."""
@@ -98,6 +98,8 @@ class Scheduler:
         """Initialize scheduler with an owner and empty task list."""
         self.owner = owner
         self.tasks: List[Task] = []
+        self.deleted_pets: List[Pet] = []
+        self.deleted_tasks: List[Task] = []
 
     def addTask(self, task: Task):
         """Add a task to the schedule after validating the pet exists."""
@@ -107,7 +109,23 @@ class Scheduler:
 
     def removeTask(self, taskId: str):
         """Remove a task from the schedule by task ID."""
-        self.tasks = [task for task in self.tasks if task.taskId != taskId]
+        task_to_remove = next((task for task in self.tasks if task.taskId == taskId), None)
+        if task_to_remove:
+            self.tasks.remove(task_to_remove)
+            self.deleted_tasks.append(task_to_remove)
+
+    def removePet(self, petId: str):
+        """Remove a pet and all its associated tasks, moving them to deleted lists."""
+        pet_to_remove = next((pet for pet in self.owner.pets if pet.petId == petId), None)
+        if pet_to_remove:
+            self.owner.pets.remove(pet_to_remove)
+            self.deleted_pets.append(pet_to_remove)
+
+            # Move all tasks for this pet to deleted_tasks
+            tasks_to_delete = [task for task in self.tasks if task.petId == petId]
+            for task in tasks_to_delete:
+                self.tasks.remove(task)
+                self.deleted_tasks.append(task)
 
     def rescheduleTask(self, taskId: str, newTime: datetime):
         """Update the scheduled time for a specific task."""

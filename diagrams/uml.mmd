@@ -8,7 +8,7 @@ classDiagram
         + addPet(pet: Pet)
         + removePet(petId: String)
         + getPets(): List~Pet~
-        + addTask(task: Task, petId: String)
+        + addTask(task: Task)
         + removeTask(taskId: String)
         + viewSchedule()
         + getTasksForAllPets(): List~Task~
@@ -46,8 +46,11 @@ classDiagram
     class Scheduler {
         - owner: Owner
         - tasks: List~Task~
-        + addTask(task: Task, petId: String)
+        - deleted_pets: List~Pet~
+        - deleted_tasks: List~Task~
+        + addTask(task: Task)
         + removeTask(taskId: String)
+        + removePet(petId: String)
         + rescheduleTask(taskId: String, newTime: DateTime)
         + viewSchedule()
         + taskCompleted(taskId: String)

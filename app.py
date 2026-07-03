@@ -113,35 +113,36 @@ else:
             selected_pet_name = st.selectbox("Select Pet", list(pet_options.keys()), key="selected_pet_select")
             selected_pet_id = pet_options[selected_pet_name]
 
-            task_description = st.text_input("Task Description", placeholder="e.g., Morning walk", key="task_description_input")
-            task_time = st.time_input("Task Time", value=datetime.now().time(), key="task_time_input")
-            task_frequency = st.selectbox("Frequency", ["one-time", "daily", "weekly", "monthly", "yearly"], key="task_frequency_select")
-            task_priority = st.selectbox("Priority", ["low", "medium", "high"], key="task_priority_select")
-            task_duration = st.number_input("Duration (minutes)", min_value=1, value=30, key="task_duration_input")
+            with st.form("add_task_form"):
+                task_description = st.text_input("Task Description", placeholder="e.g., Morning walk", key="task_description_input")
+                task_time = st.time_input("Task Time", value=datetime.now().time(), key="task_time_input")
+                task_frequency = st.selectbox("Frequency", ["one-time", "daily", "weekly", "monthly", "yearly"], key="task_frequency_select")
+                task_priority = st.selectbox("Priority", ["low", "medium", "high"], key="task_priority_select")
+                task_duration = st.number_input("Duration (minutes)", min_value=1, value=30, key="task_duration_input")
 
-            if st.button("Add Task"):
-                if task_description:
-                    task_datetime = datetime.now().replace(
-                        hour=task_time.hour,
-                        minute=task_time.minute,
-                        second=0,
-                        microsecond=0
-                    )
-                    new_task = Task(
-                        taskId=str(len(st.session_state.scheduler.tasks) + 1),
-                        petId=selected_pet_id,
-                        description=task_description,
-                        time=task_datetime,
-                        frequency=task_frequency,
-                        priority=task_priority,
-                        duration=task_duration,
-                        completionStatus="pending"
-                    )
-                    st.session_state.owner.addTask(new_task)
-                    st.success(f"✓ Task added for {selected_pet_name}!")
-                    st.rerun()
-                else:
-                    st.error("Please enter a task description")
+                if st.form_submit_button("Add Task"):
+                    if task_description:
+                        task_datetime = datetime.now().replace(
+                            hour=task_time.hour,
+                            minute=task_time.minute,
+                            second=0,
+                            microsecond=0
+                        )
+                        new_task = Task(
+                            taskId=str(len(st.session_state.scheduler.tasks) + 1),
+                            petId=selected_pet_id,
+                            description=task_description,
+                            time=task_datetime,
+                            frequency=task_frequency,
+                            priority=task_priority,
+                            duration=task_duration,
+                            completionStatus="pending"
+                        )
+                        st.session_state.owner.addTask(new_task)
+                        st.success(f"✓ Task added for {selected_pet_name}!")
+                        st.rerun()
+                    else:
+                        st.error("Please enter a task description")
 
     # Tab 4: Manage Tasks
     with tab4:
