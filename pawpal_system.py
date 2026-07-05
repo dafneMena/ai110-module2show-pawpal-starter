@@ -191,9 +191,6 @@ class Scheduler:
             # Print formatted task
             display_func(f"{time_str} — {pet_name} {task.description} | {task.duration} min | Priority: {task.priority} | Status: {task.completionStatus}")
 
-        # Print footer only if header was shown
-        if show_header:
-            display_func(border)
 
     def taskCompleted(self, taskId: str):
         """Mark a task as completed by task ID. Auto-generates next instance for recurring tasks."""
@@ -226,6 +223,81 @@ class Scheduler:
         if matching_pet_id:
             return [task for task in self.tasks if task.petId == matching_pet_id]
         return []
+
+    def detectConflicts(self) -> List[str]:
+        """Detect task conflicts and return warning messages for overlapping scheduled times.
+
+        Returns a list of warning strings describing conflicts where:
+        - Two or more tasks for the same pet are at the same time
+        - Two or more tasks for different pets are at the same time
+        """
+        warnings = []
+
+        # Group tasks by their scheduled time
+        time_groups = {}
+        for task in self.tasks:
+            if task.completionStatus == "pending":
+                time_key = task.time
+                if time_key not in time_groups:
+                    time_groups[time_key] = []
+                time_groups[time_key].append(task)
+
+        # Check each time slot for conflicts
+        for scheduled_time, tasks_at_time in time_groups.items():
+            if len(tasks_at_time) > 1:
+                # Group tasks by pet ID
+                by_pet = {}
+                for task in tasks_at_time:
+                    if task.petId not in by_pet:
+                        by_pet[task.petId] = []
+                    by_pet[task.petId].append(task)
+
+                time_str = scheduled_time.strftime("%Y-%m-%d %H:%M")
+
+                # Check for same-pet conflicts
+                for pet_id, pet_tasks in by_pet.items():
+                    if len(pet_tasks) > 1:
+                        pet = next((p for p in self.owner.pets if p.petId == pet_id), None)
+                        pet_name = pet.name if pet else f"Pet {pet_id}"
+                        task_descs = " & ".join([f'"{t.description}"' for t in pet_tasks])
+                        warnings.append(
+                            f"[CONFLICT] {pet_name} has multiple tasks at {time_str}: {task_descs}"
+                        )
+
+                # Check for multi-pet conflicts
+                if len(by_pet) > 1:
+                    pet_names = []
+                    for pet_id in by_pet.keys():
+                        pet = next((p for p in self.owner.pets if p.petId == pet_id), None)
+                        pet_names.append(pet.name if pet else f"Pet {pet_id}")
+
+                    task_list = " & ".join(
+                        [f'{next((p for p in self.owner.pets if p.petId == t.petId), None).name}: "{t.description}"'
+                         for t in tasks_at_time]
+                    )
+                    warnings.append(
+                        f"[MULTI-PET] {', '.join(pet_names)} scheduled simultaneously at {time_str}: {task_list}"
+                    )
+
+        return warnings
+
+    def displayConflicts(self, display_func=print):
+        """Display any detected task conflicts with warning messages."""
+        warnings = self.detectConflicts()
+
+        if not warnings:
+            display_func("[OK] No scheduling conflicts detected!")
+            return
+
+        border = "=" * 70
+        display_func(border)
+        display_func("SCHEDULING CONFLICT WARNINGS")
+        display_func(border)
+
+        for warning in warnings:
+            display_func(warning)
+
+        display_func(border)
 
     def generateDailyTasks(self):
         """Generate future task instances based on frequency (daily, weekly, monthly)."""

@@ -42,17 +42,22 @@ def initialize_demo():
                  time=datetime.now().replace(hour=5, minute=45, second=0, microsecond=0),
                  frequency="daily", priority="high", duration=60, completionStatus="pending")
 
-    task5 = Task(taskId="5", petId="2", description="Dinner",
+    task5 = Task(taskId="5", petId="2", description="Lunch",
+                 time=datetime.now().replace(hour=12, minute=30, second=0, microsecond=0),
+                 frequency="daily", priority="high", duration=15, completionStatus="pending")
+
+    task6 = Task(taskId="6", petId="2", description="Dinner",
                  time=datetime.now().replace(hour=18, minute=30, second=0, microsecond=0),
                  frequency="daily", priority="high", duration=10, completionStatus="pending")
 
-    task6 = Task(taskId="6", petId="2", description="Evening play session",
-                 time=datetime.now().replace(hour=19, minute=0, second=0, microsecond=0),
-                 frequency="daily", priority="high", duration=45, completionStatus="pending")
+    # Add a conflict: Luna has two tasks at 18:30 (same pet, same time)
+    task11 = Task(taskId="11", petId="2", description="Evening play session",
+                  time=datetime.now().replace(hour=18, minute=30, second=0, microsecond=0),
+                  frequency="daily", priority="high", duration=45, completionStatus="pending")
 
     # Create Tasks for Cooper (Beagle)
     task7 = Task(taskId="7", petId="3", description="Breakfast",
-                 time=datetime.now().replace(hour=7, minute=30, second=0, microsecond=0),
+                 time=datetime.now().replace(hour=7, minute=0, second=0, microsecond=0),
                  frequency="daily", priority="high", duration=10, completionStatus="pending")
 
     task8 = Task(taskId="8", petId="3", description="Midday walk",
@@ -62,6 +67,11 @@ def initialize_demo():
     task9 = Task(taskId="9", petId="3", description="Training session",
                  time=datetime.now().replace(hour=16, minute=0, second=0, microsecond=0),
                  frequency="daily", priority="medium", duration=25, completionStatus="pending")
+
+    # Add a conflict scenario: two tasks for Max at the same time
+    task10 = Task(taskId="10", petId="1", description="Playtime",
+                  time=datetime.now().replace(hour=7, minute=0, second=0, microsecond=0),
+                  frequency="daily", priority="high", duration=20, completionStatus="pending")
 
     # Add all tasks through owner
     owner.addTask(task1)
@@ -73,11 +83,15 @@ def initialize_demo():
     owner.addTask(task7)
     owner.addTask(task8)
     owner.addTask(task9)
+    owner.addTask(task10)
+    owner.addTask(task11)
 
     return owner, scheduler
 
 
-# When running directly, display the schedule
+# When running directly, display the schedule and check for conflicts
 if __name__ == "__main__":
     owner, scheduler = initialize_demo()
     owner.viewSchedule()
+    print()
+    scheduler.displayConflicts()
