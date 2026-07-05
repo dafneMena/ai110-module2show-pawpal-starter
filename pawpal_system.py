@@ -35,7 +35,15 @@ class Task:
         return f"Task: {self.description} | Pet: {self.petId} | Time: {self.time} | Priority: {self.priority} | Status: {self.completionStatus}"
 
     def generateNextInstance(self) -> 'Task':
-        """Create the next instance of a recurring task."""
+        """Create the next instance of a recurring task.
+
+        Calculates the next occurrence based on task frequency and returns
+        a new Task instance with the same attributes but an incremented time.
+        Returns None for one-time tasks.
+
+        Returns:
+            A new Task instance for the next occurrence, or None if non-recurring.
+        """
         if self.frequency == "one-time":
             return None
 
@@ -124,7 +132,11 @@ class Owner:
 
 class Scheduler:
     def __init__(self, owner: Owner):
-        """Initialize scheduler with an owner and empty task list."""
+        """Initialize scheduler with an owner and empty task list.
+
+        Args:
+            owner: The Owner instance managing pets and tasks.
+        """
         self.owner = owner
         self.tasks: List[Task] = []
         self.deleted_pets: List[Pet] = []
@@ -227,9 +239,14 @@ class Scheduler:
     def detectConflicts(self) -> List[str]:
         """Detect task conflicts and return warning messages for overlapping scheduled times.
 
-        Returns a list of warning strings describing conflicts where:
-        - Two or more tasks for the same pet are at the same time
-        - Two or more tasks for different pets are at the same time
+        Identifies two types of conflicts:
+        - Same-pet conflicts: multiple tasks for one pet at the same time
+        - Multi-pet conflicts: tasks for different pets scheduled simultaneously
+
+        Only considers pending tasks. Returns empty list if no conflicts found.
+
+        Returns:
+            A list of warning strings describing each conflict detected.
         """
         warnings = []
 
@@ -300,46 +317,35 @@ class Scheduler:
         display_func(border)
 
     def generateDailyTasks(self):
-        """Generate future task instances based on frequency (daily, weekly, monthly)."""
+        """Generate future task instances based on frequency (daily, weekly, monthly).
+
+        Creates multiple instances of recurring tasks to populate the schedule ahead.
+        For daily tasks, generates 365 instances. For weekly, 52 instances. For monthly, 12 instances.
+        One-time tasks are skipped. Generated tasks are automatically appended to the task list.
+        """
+        frequency_config = {
+            "daily": (365, timedelta(days=1), "day"),
+            "weekly": (52, timedelta(weeks=1), "week"),
+            "monthly": (12, timedelta(days=30), "month"),
+        }
+
         new_tasks = []
         for task in self.tasks:
-            if task.frequency == "daily":
-                for i in range(1, 365):
-                    new_task = Task(
-                        taskId=f"{task.taskId}_day_{i}",
-                        petId=task.petId,
-                        description=task.description,
-                        time=task.time + timedelta(days=i),
-                        frequency=task.frequency,
-                        priority=task.priority,
-                        duration=task.duration,
-                        completionStatus="pending"
-                    )
-                    new_tasks.append(new_task)
-            elif task.frequency == "weekly":
-                for i in range(1, 52):
-                    new_task = Task(
-                        taskId=f"{task.taskId}_week_{i}",
-                        petId=task.petId,
-                        description=task.description,
-                        time=task.time + timedelta(weeks=i),
-                        frequency=task.frequency,
-                        priority=task.priority,
-                        duration=task.duration,
-                        completionStatus="pending"
-                    )
-                    new_tasks.append(new_task)
-            elif task.frequency == "monthly":
-                for i in range(1, 12):
-                    new_task = Task(
-                        taskId=f"{task.taskId}_month_{i}",
-                        petId=task.petId,
-                        description=task.description,
-                        time=task.time + timedelta(days=30 * i),
-                        frequency=task.frequency,
-                        priority=task.priority,
-                        duration=task.duration,
-                        completionStatus="pending"
-                    )
-                    new_tasks.append(new_task)
+            if task.frequency not in frequency_config:
+                continue
+
+            count, time_delta, suffix = frequency_config[task.frequency]
+            for i in range(1, count):
+                new_task = Task(
+                    taskId=f"{task.taskId}_{suffix}_{i}",
+                    petId=task.petId,
+                    description=task.description,
+                    time=task.time + (time_delta * i),
+                    frequency=task.frequency,
+                    priority=task.priority,
+                    duration=task.duration,
+                    completionStatus="pending"
+                )
+                new_tasks.append(new_task)
+
         self.tasks.extend(new_tasks)

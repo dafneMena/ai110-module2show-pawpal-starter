@@ -37,15 +37,21 @@ These changes ensured proper communication between classes and made the delegati
 ## 2. Scheduling Logic and Tradeoffs
 
 **a. Constraints and priorities**
-
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
+
+The scheduler considers time (preventing overlap), priority levels (high/medium/low for importance), and pet owner relationships (tasks tied to specific pets). 
 - How did you decide which constraints mattered most?
 
-**b. Tradeoffs**
+I prioritized time constraints most, since scheduling conflicts directly break the schedule—whereas priority and activity level are informational but don't block task assignment. This reflects the reality that when to do something matters more than categorizing how important it is.
 
+**b. Tradeoffs**
 - Describe one tradeoff your scheduler makes.
+
+The scheduler detects conflicts but doesn't auto resolve them—it warns users rather than automatically rescheduling. This trades automation for control. Users stay informed and decide how to handle overlaps, but must manually fix conflicts.
+
 - Why is that tradeoff reasonable for this scenario?
 
+This tradeoff is reasonable because pet care is personal—only the owner knows if two tasks can shift, or if one must stay at that exact time.
 ---
 
 ## 3. AI Collaboration

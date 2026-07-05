@@ -53,6 +53,17 @@ else:
         if len(st.session_state.scheduler.tasks) == 0:
             st.info("No tasks scheduled yet. Add a pet and task to get started!")
         else:
+            # Display conflict warnings if any
+            conflicts = st.session_state.scheduler.detectConflicts()
+            if conflicts:
+                with st.expander("⚠️ Scheduling Conflicts Detected", expanded=True):
+                    for conflict in conflicts:
+                        st.warning(conflict)
+            else:
+                st.success("✓ No scheduling conflicts detected!")
+
+            st.divider()
+            st.subheader("Schedule")
             st.session_state.scheduler.viewSchedule(display_func=st.write, show_header=False)
 
     # Tab 2: Manage Pets
