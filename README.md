@@ -86,8 +86,18 @@ pytest --cov
 Sample test output:
 
 ```
-# Paste your pytest output here
+Name                            Stmts   Miss  Cover
+---------------------------------------------------
+pawpal_system.py                  192     40    79%
+tests\test_pawpal.py              292     21    93%
+tests\test_recurring_tasks.py      76      7    91%
+---------------------------------------------------
+TOTAL                             560     68    88%
 ```
+
+ Tests verify core scheduler functionality: task lifecycle (creation, completion, rescheduling, priority updates), recurring task logic (auto-generating next instances for daily/weekly tasks), scheduling features (chronological sorting, conflict detection for overlapping tasks), and pet/task management (filtering by status/pet name, adding/removing tasks and pets). All tests follow realistic workflows like adding pets → scheduling tasks → detecting conflicts → completing tasks.
+
+ Confidence level: 3
 
 ## 📐 Smarter Scheduling
 
@@ -113,5 +123,3 @@ Sample test output:
 4. **View today's schedule** — Go to the "📅 Today's Schedule" tab to see all tasks sorted by time. The app displays each task with pet name, description, duration, priority, and completion status. If conflicts exist, they appear at the top in an expandable warning section.
 
 5. **Manage tasks** — In the "⚙️ Manage Tasks" tab, filter tasks by status (pending/completed/missed) and/or by pet name. For each task, you can mark it complete (which auto-generates the next recurring instance) or delete it. The count shows how many tasks match your filters.
-
-6. 
