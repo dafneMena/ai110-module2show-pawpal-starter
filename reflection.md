@@ -5,27 +5,28 @@
 **a. Initial design**
 
 - Briefly describe your initial UML design.
+
 The PawPal system uses a four-class architecture where the Owner is the primary user who manages their Pets through a Scheduler that serves as the central brain for task organization. Tasks are stored in the Scheduler and track pet care activities with properties like priority, frequency, and completion status.  
 
 - What classes did you include, and what responsibilities did 
 you assign to each?
-Owner — Represents the pet owner. Manages multiple pets and delegates all task management (add, remove, view, reschedule) to the Scheduler.
 
-Pet — Stores pet information (name, type, age, health info, activity level). Can only view its own tasks; cannot modify them.
-
-Task — Represents a single care activity with attributes like description, time, priority, duration, and frequency. Supports marking complete, rescheduling, and priority updates. References a pet via petId.
-
-Scheduler — The "brain" that manages all tasks across all pets. Stores all tasks in one place and handles task operations. Also generates new instances of recurring tasks daily.
+**Owner** — Represents the pet owner. Manages multiple pets and delegates all task management (add, remove, view, reschedule) to the Scheduler.
+**Pet** — Stores pet information (name, type, age, health info, activity level). Can only view its own tasks; cannot modify them.
+**Task** — Represents a single care activity with attributes like description, time, priority, duration, and frequency. Supports marking complete, rescheduling, and priority updates. References a pet via petId.
+**Scheduler** — The "brain" that manages all tasks across all pets. Stores all tasks in one place and handles task operations. Also generates new instances of recurring tasks daily.
 
 **b. Design changes**
 
 - Did your design change during implementation?
+
 Yes. During the brainstorming process, we identified and fixed two key missing relationships:
 Added Scheduler reference to Owner — We realized Owner needed a direct reference to Scheduler so it could properly delegate task operations (addTask, removeTask, etc.).
 
 Added Scheduler reference to Pet — Pet's getTasks() method needed access to the Scheduler to filter and retrieve tasks belonging to that pet. Without this reference, Pet couldn't implement the method. 
 
 - If yes, describe at least one change and why you made it.
+
 These changes ensured proper communication between classes and made the delegation pattern functional. Without these relationships, Owner and Pet couldn't interact with Scheduler to manage tasks, which would have created dead code.
 
 ---
