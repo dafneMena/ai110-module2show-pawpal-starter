@@ -12,8 +12,11 @@ The PawPal system uses a four-class architecture where the Owner is the primary 
 you assign to each?
 
 **Owner** — Represents the pet owner. Manages multiple pets and delegates all task management (add, remove, view, reschedule) to the Scheduler.
+
 **Pet** — Stores pet information (name, type, age, health info, activity level). Can only view its own tasks; cannot modify them.
+
 **Task** — Represents a single care activity with attributes like description, time, priority, duration, and frequency. Supports marking complete, rescheduling, and priority updates. References a pet via petId.
+
 **Scheduler** — The "brain" that manages all tasks across all pets. Stores all tasks in one place and handles task operations. Also generates new instances of recurring tasks daily.
 
 **b. Design changes**
